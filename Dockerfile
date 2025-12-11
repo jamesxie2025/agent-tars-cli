@@ -38,11 +38,16 @@ RUN pip3 install --no-cache-dir --break-system-packages \
     plotly \
     numpy
 
-# Configure Puppeteer to use system Chromium
+# Create Chrome symlinks for Agent TARS browser detection
+RUN ln -s /usr/bin/chromium /usr/bin/google-chrome && \
+    ln -s /usr/bin/chromium /usr/bin/chrome
+
+# Configure Puppeteer and browser environment variables
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
     CHROME_BIN=/usr/bin/chromium \
-    CHROME_PATH=/usr/bin/chromium
+    CHROME_PATH=/usr/bin/chromium \
+    CHROMIUM_PATH=/usr/bin/chromium
 
 # Install Agent TARS CLI globally as root
 RUN npm install -g @agent-tars/cli@latest
@@ -68,6 +73,8 @@ VOLUME ["/app/data", "/app/cache", "/app/generated", "/app/workspace"]
 # Start Agent TARS with model configuration from environment variables
 # Use shell form to allow environment variable substitution
 CMD sh -c "agent-tars --ui --port 8080 \
+  --config /app/mcp-config.ts \
+  --workspace /app/workspace \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
   --model.id ${TARS_MODEL_NAME:-gpt-4o} \
   --model.baseURL ${TARS_MODEL_BASE_URL:-} \
