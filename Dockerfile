@@ -4,7 +4,7 @@ FROM node:22-alpine
 LABEL maintainer="jamesxie2025"
 LABEL description="Agent TARS CLI - Multimodal AI Agent"
 
-# Install system dependencies
+# Install system dependencies including build tools
 RUN apk update && \
     apk add --no-cache \
     git \
@@ -14,6 +14,9 @@ RUN apk update && \
     freetype \
     harfbuzz \
     ttf-freefont \
+    python3 \
+    make \
+    g++ \
     && rm -rf /var/cache/apk/*
 
 # Configure Puppeteer to use system Chromium
