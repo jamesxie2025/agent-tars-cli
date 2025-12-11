@@ -5,15 +5,10 @@ LABEL maintainer="jamesxie2025"
 LABEL description="Agent TARS CLI - Multimodal AI Agent"
 
 # Install system dependencies
-# Split into multiple RUN commands for better caching and error handling
 RUN apk update && \
     apk add --no-cache \
     git \
     ca-certificates \
-    && rm -rf /var/cache/apk/*
-
-# Install Chromium separately (for browser automation)
-RUN apk add --no-cache \
     chromium \
     nss \
     freetype \
@@ -27,18 +22,19 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     CHROME_BIN=/usr/bin/chromium-browser \
     CHROME_PATH=/usr/lib/chromium/
 
+# Install Agent TARS CLI globally as root
+RUN npm install -g @agent-tars/cli@latest
+
 WORKDIR /app
 
-# Create non-root user
+# Create non-root user and set permissions
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001 && \
     mkdir -p /app/data /app/cache /app/generated && \
     chown -R nodejs:nodejs /app
 
+# Switch to non-root user
 USER nodejs
-
-# Install Agent TARS CLI globally
-RUN npm install -g @agent-tars/cli@latest
 
 EXPOSE 8080
 
