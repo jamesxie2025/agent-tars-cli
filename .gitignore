@@ -14,7 +14,12 @@ yarn-error.log*
 data/
 cache/
 generated/
+workspace/
 logs/
+
+# Backup files
+*.backup
+backup_*.tar.gz
 
 # OS files
 .DS_Store

@@ -14,6 +14,7 @@ services:
       - ./data:/app/data
       - ./cache:/app/cache
       - ./generated:/app/generated
+      - ./workspace:/app/workspace
       - ./mcp-config.ts:/app/mcp-config.ts:ro
       - ./agent-config.ts:/app/agent-config.ts:ro
 
