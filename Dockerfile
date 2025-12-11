@@ -54,4 +54,8 @@ VOLUME ["/app/data", "/app/cache", "/app/generated"]
 
 # Start Agent TARS with model configuration from environment variables
 # Use shell form to allow environment variable substitution
-CMD sh -c "agent-tars --ui --port 8080 --provider ${TARS_MODEL_PROVIDER:-modelscope} --model ${TARS_MODEL_NAME:-qwen-max} --apiKey ${MODELSCOPE_API_KEY:-${DEEPSEEK_API_KEY:-${OPENAI_API_KEY:-${ANTHROPIC_API_KEY}}}}"
+CMD sh -c "agent-tars --ui --port 8080 \
+  --model.provider ${TARS_MODEL_PROVIDER:-openai} \
+  --model.id ${TARS_MODEL_NAME:-gpt-4o} \
+  --model.baseURL ${TARS_MODEL_BASE_URL:-} \
+  --model.apiKey ${TARS_MODEL_API_KEY:-${MODELSCOPE_API_KEY:-${DEEPSEEK_API_KEY:-${OPENAI_API_KEY:-${ANTHROPIC_API_KEY}}}}}"

@@ -15,13 +15,20 @@ services:
       - ./cache:/app/cache
       - ./generated:/app/generated
       - ./mcp-config.ts:/app/mcp-config.ts:ro
-    
+      - ./agent-config.ts:/app/agent-config.ts:ro
+
     env_file:
       - .env
-    
+
     environment:
       - NODE_ENV=production
       - TZ=Asia/Shanghai
+      # Model configuration - these will be read from .env file
+      # You can override them here if needed
+      - TARS_MODEL_PROVIDER=${TARS_MODEL_PROVIDER}
+      - TARS_MODEL_NAME=${TARS_MODEL_NAME}
+      - TARS_MODEL_BASE_URL=${TARS_MODEL_BASE_URL}
+      - TARS_MODEL_API_KEY=${TARS_MODEL_API_KEY}
     
     deploy:
       resources:
