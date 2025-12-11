@@ -3,6 +3,7 @@ version: '3.8'
 services:
   agent-tars:
     image: ghcr.io/jamesxie2025/agent-tars-cli:latest
+    platform: linux/amd64
     container_name: agent-tars
     restart: unless-stopped
     
