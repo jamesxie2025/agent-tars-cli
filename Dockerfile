@@ -52,4 +52,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 
 VOLUME ["/app/data", "/app/cache", "/app/generated"]
 
-CMD ["agent-tars", "--ui", "--port", "8080"]
+# Start Agent TARS with model configuration from environment variables
+# Use shell form to allow environment variable substitution
+CMD sh -c "agent-tars --ui --port 8080 --provider ${TARS_MODEL_PROVIDER:-modelscope} --model ${TARS_MODEL_NAME:-qwen-max} --apiKey ${MODELSCOPE_API_KEY:-${DEEPSEEK_API_KEY:-${OPENAI_API_KEY:-${ANTHROPIC_API_KEY}}}}"
