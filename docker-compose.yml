@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  agent-tars:
+    image: ghcr.io/jamesxie2025/agent-tars-cli:latest
+    container_name: agent-tars
+    restart: unless-stopped
+    
+    ports:
+      - "${PORT:-8080}:8080"
+    
+    volumes:
+      - ./data:/app/data
+      - ./cache:/app/cache
+      - ./generated:/app/generated
+      - ./mcp-config.ts:/app/mcp-config.ts:ro
+    
+    env_file:
+      - .env
+    
+    environment:
+      - NODE_ENV=production
+      - TZ=Asia/Shanghai
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
