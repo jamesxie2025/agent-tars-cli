@@ -100,13 +100,31 @@ docker run -d \
 
 编辑 `mcp-config.ts` 来启用/禁用 MCP 工具。
 
-默认启用的工具：
+**完整版配置** (`mcp-config.ts`)：
 - **filesystem**: 文件操作
 - **excel**: Excel 文件处理
 - **chart**: 图表生成
 - **memory**: 持久化记忆
 - **git**: Git 操作
 - **sqlite**: 本地数据库
+
+**精简版配置** (`mcp-config.minimal.ts`)：
+- **filesystem**: 文件操作
+- **memory**: 持久化记忆
+- **git**: Git 操作
+- **sqlite**: 本地数据库
+
+如果遇到工具加载问题，可以使用精简版：
+```bash
+# 备份原配置
+mv mcp-config.ts mcp-config.ts.backup
+
+# 使用精简版
+cp mcp-config.minimal.ts mcp-config.ts
+
+# 重启容器
+docker-compose restart
+```
 
 可选工具（需要配置 API Key）：
 - **brave-search**: 网络搜索
@@ -119,14 +137,27 @@ docker run -d \
 
 ```
 agent-tars-cli/
-├── .env                    # 环境变量（不提交到 Git）
-├── .env.example            # 环境变量模板
-├── docker-compose.yml      # Docker Compose 配置
-├── mcp-config.ts          # MCP 工具配置
-├── data/                  # 数据目录（持久化）
-├── cache/                 # 缓存目录（持久化）
-└── generated/             # 生成文件目录（持久化）
+├── .env                      # 环境变量（不提交到 Git）
+├── .env.example              # 环境变量模板
+├── docker-compose.yml        # Docker Compose 配置
+├── Dockerfile                # Docker 镜像构建文件
+├── mcp-config.ts             # MCP 工具配置（完整版）
+├── mcp-config.minimal.ts     # MCP 工具配置（精简版）
+├── DEPLOYMENT_GUIDE.md       # 📖 详细部署指南
+├── CONFIGURATION.md          # 📖 模型配置指南
+├── DOCKER_CLEANUP.md         # 📖 Docker 清理指南
+├── data/                     # 数据目录（持久化）
+├── cache/                    # 缓存目录（持久化）
+└── generated/                # 生成文件目录（持久化）
 ```
+
+---
+
+## 📖 文档索引
+
+- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - 完整的部署指南，适用于任何 Mac 电脑
+- **[CONFIGURATION.md](CONFIGURATION.md)** - 如何更换 AI 模型和配置 API
+- **[DOCKER_CLEANUP.md](DOCKER_CLEANUP.md)** - 如何清理 Docker 镜像和释放空间
 
 ---
 
