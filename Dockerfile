@@ -75,6 +75,9 @@ VOLUME ["/app/data", "/app/cache", "/app/generated", "/app/workspace"]
 CMD sh -c "agent-tars --ui --port 8080 \
   --config /app/mcp-config.ts \
   --workspace /app/workspace \
+  --browser.control hybrid \
+  --search.provider browser_search \
+  --search.count 10 \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
   --model.id ${TARS_MODEL_NAME:-gpt-4o} \
   --model.baseURL ${TARS_MODEL_BASE_URL:-} \

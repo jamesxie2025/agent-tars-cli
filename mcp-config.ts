@@ -31,12 +31,12 @@ export default {
       description: "Read and write Excel files (.xlsx, .xls)"
     },
 
-    // Chart generation
+    // Chart generation (using AntV MCP server)
     chart: {
       command: "npx",
-      args: ["-y", "@modelcontextprotocol/server-chart"],
+      args: ["-y", "@antv/mcp-server-chart"],
       env: {},
-      description: "Generate charts and visualizations"
+      description: "Generate charts and visualizations with 25+ chart types"
     },
 
     // Persistent memory
