@@ -56,19 +56,6 @@ echo -e "${BLUE}=========================================${NC}"
 docker logs agent-tars 2>&1 | tail -20
 echo ""
 
-# 运行诊断
-echo -e "${BLUE}=========================================${NC}"
-echo -e "${BLUE}  运行诊断${NC}"
-echo -e "${BLUE}=========================================${NC}"
-echo ""
-
-if [ -f "./diagnose.sh" ]; then
-    ./diagnose.sh
-else
-    echo -e "${YELLOW}⚠️  diagnose.sh 不存在，跳过诊断${NC}"
-fi
-
-echo ""
 echo -e "${GREEN}=========================================${NC}"
 echo -e "${GREEN}  ✅ 更新完成！${NC}"
 echo -e "${GREEN}=========================================${NC}"
