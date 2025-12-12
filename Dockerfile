@@ -51,13 +51,15 @@ RUN ln -s /usr/bin/chromium /usr/bin/google-chrome-stable && \
 
 # Configure Puppeteer and browser environment variables
 # Add --no-sandbox for Docker container compatibility
+# Set DISPLAY to prevent X server connection attempts
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
     CHROME_BIN=/usr/bin/chromium \
     CHROME_PATH=/usr/bin/chromium \
     CHROMIUM_PATH=/usr/bin/chromium \
     CHROME_EXECUTABLE_PATH=/usr/bin/chromium \
-    PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"
+    PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage" \
+    DISPLAY=:99
 
 # Install Agent TARS CLI globally as root
 RUN npm install -g @agent-tars/cli@latest
@@ -88,7 +90,7 @@ CMD sh -c "agent-tars --ui --port 8080 \
   --config /app/mcp-config.ts \
   --workspace /app/workspace \
   --browser.control dom \
-  --browser '{\"executablePath\":\"/usr/bin/chromium\",\"args\":[\"--headless\",\"--no-sandbox\",\"--disable-setuid-sandbox\",\"--disable-dev-shm-usage\",\"--disable-gpu\"]}' \
+  --browser '{\"executablePath\":\"/usr/bin/chromium\",\"args\":[\"--headless=new\",\"--no-sandbox\",\"--disable-setuid-sandbox\",\"--disable-dev-shm-usage\",\"--disable-gpu\",\"--disable-software-rasterizer\"]}' \
   --search.provider browser_search \
   --search.count 10 \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
