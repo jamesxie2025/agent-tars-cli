@@ -115,25 +115,35 @@ Agent TARS 需要 AI 模型 API 才能工作。你需要至少准备以下其中
    cp .env.example .env
    ```
 
+   **注意**：如果提示文件已存在，可以先删除旧的 `.env` 文件：
+   ```bash
+   rm .env
+   cp .env.example .env
+   ```
+
 2. **编辑 .env 文件**：
+
+   **方法 1：使用 nano 编辑器**（推荐新手）：
    ```bash
    nano .env
    ```
-   
-   或者使用文本编辑器打开：
+
+   **方法 2：使用文本编辑器**：
    ```bash
    open -e .env
    ```
 
 3. **修改配置**（根据你选择的 API 提供商）：
 
-   **如果使用 DeepSeek**：
+   **如果使用 DeepSeek**（推荐）：
    ```bash
    TARS_MODEL_PROVIDER=openai
    TARS_MODEL_NAME=deepseek-chat
    TARS_MODEL_BASE_URL=https://api.deepseek.com
    TARS_MODEL_API_KEY=sk-你的DeepSeek-API-Key
    ```
+
+   **重要**：将 `sk-你的DeepSeek-API-Key` 替换为你在步骤 3 中获取的真实 API Key
 
    **如果使用 OpenAI**：
    ```bash
@@ -143,9 +153,11 @@ Agent TARS 需要 AI 模型 API 才能工作。你需要至少准备以下其中
    TARS_MODEL_API_KEY=sk-你的OpenAI-API-Key
    ```
 
+   **重要**：将 `sk-你的OpenAI-API-Key` 替换为你的真实 API Key
+
 4. **保存文件**：
    - 如果使用 nano：按 `Ctrl + X`，然后按 `Y`，最后按回车
-   - 如果使用文本编辑器：直接保存并关闭
+   - 如果使用文本编辑器：按 `Command + S` 保存，然后关闭窗口
 
 ### 步骤 3：启动 Agent TARS
 
@@ -195,6 +207,36 @@ Agent TARS 需要 AI 模型 API 才能工作。你需要至少准备以下其中
    ```
 
 3. **开始使用**！你应该看到 Agent TARS 的 Web 界面
+
+### 步骤 5：快速验证（可选）
+
+验证所有功能是否正常工作：
+
+1. **检查容器健康状态**：
+   ```bash
+   docker ps
+   ```
+
+   确认 STATUS 列显示 `Up X seconds (healthy)`
+
+2. **检查浏览器功能**：
+   ```bash
+   docker exec agent-tars chromium --version
+   ```
+
+   应该显示：`Chromium 143.x.x.x built on Debian GNU/Linux 12 (bookworm)`
+
+3. **检查 Python 环境**：
+   ```bash
+   docker exec agent-tars python3 --version
+   ```
+
+   应该显示：`Python 3.11.2`
+
+4. **查看完整日志**（确认没有错误）：
+   ```bash
+   docker logs agent-tars 2>&1 | tail -30
+   ```
 
 ---
 
@@ -308,6 +350,41 @@ docker-compose up -d
   docker-compose pull
   docker-compose up -d
   ```
+
+### 5. 容器启动后无法访问
+
+**症状**：浏览器访问 http://localhost:8080 显示"无法连接"
+
+**解决方法**：
+1. 检查容器是否正在运行：
+   ```bash
+   docker ps | grep agent-tars
+   ```
+
+2. 如果容器未运行，查看错误日志：
+   ```bash
+   docker logs agent-tars
+   ```
+
+3. 检查端口是否被占用：
+   ```bash
+   lsof -i :8080
+   ```
+
+4. 等待容器完全启动（可能需要 30-60 秒）
+
+### 6. 镜像拉取失败
+
+**错误信息**：`Error response from daemon: Get https://ghcr.io/...`
+
+**解决方法**：
+1. 检查网络连接
+2. 检查 Docker Desktop 是否正在运行
+3. 尝试重新拉取：
+   ```bash
+   docker-compose pull --no-cache
+   ```
+4. 如果仍然失败，可能是网络问题，稍后重试
 
 ---
 
