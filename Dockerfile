@@ -39,15 +39,20 @@ RUN pip3 install --no-cache-dir --break-system-packages \
     numpy
 
 # Create Chrome symlinks for Agent TARS browser detection
+# chrome-paths package checks these specific locations on Linux
 RUN ln -s /usr/bin/chromium /usr/bin/google-chrome && \
-    ln -s /usr/bin/chromium /usr/bin/chrome
+    ln -s /usr/bin/chromium /usr/bin/chrome && \
+    mkdir -p /opt/google/chrome && \
+    ln -s /usr/bin/chromium /opt/google/chrome/chrome && \
+    ln -s /usr/bin/chromium /opt/google/chrome/google-chrome
 
 # Configure Puppeteer and browser environment variables
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
     CHROME_BIN=/usr/bin/chromium \
     CHROME_PATH=/usr/bin/chromium \
-    CHROMIUM_PATH=/usr/bin/chromium
+    CHROMIUM_PATH=/usr/bin/chromium \
+    CHROME_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Install Agent TARS CLI globally as root
 RUN npm install -g @agent-tars/cli@latest
@@ -72,10 +77,12 @@ VOLUME ["/app/data", "/app/cache", "/app/generated", "/app/workspace"]
 
 # Start Agent TARS with model configuration from environment variables
 # Use shell form to allow environment variable substitution
+# Explicitly specify browser executable path for browser_search
 CMD sh -c "agent-tars --ui --port 8080 \
   --config /app/mcp-config.ts \
   --workspace /app/workspace \
-  --browser.control hybrid \
+  --browser.control dom \
+  --browser '{\"executablePath\":\"/usr/bin/chromium\"}' \
   --search.provider browser_search \
   --search.count 10 \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
