@@ -27,7 +27,7 @@ Core:AgentTARS:LocalEnvironment:SearchToolProvider Search failed: Error [Browser
 
 ## 终极解决方案
 
-### 方案：创建正确的符号链接
+### 方案 1：创建正确的符号链接（解决浏览器检测问题）
 
 **关键发现**: 通过查看 `chrome-paths` 源码发现，它使用 `which` 命令查找浏览器，且 `google-chrome-stable` 是**最高优先级**。
 
@@ -35,6 +35,20 @@ Core:AgentTARS:LocalEnvironment:SearchToolProvider Search failed: Error [Browser
 1. 创建 `google-chrome-stable` 符号链接指向 `/usr/bin/chromium`
 2. 创建其他符号链接作为备选
 3. 恢复使用 `--search.provider browser_search` 参数
+
+### 方案 2：配置 PUPPETEER_ARGS 环境变量（解决浏览器启动问题）
+
+**关键发现**:
+- `--browser` 参数只影响浏览器控制工具（browser_navigate, browser_get_markdown 等）
+- `browser_search` 提供商使用 `SearchToolProvider` 和 `BrowserManager`
+- 这些组件使用 `PUPPETEER_ARGS` 环境变量，而不是 `--browser` 参数
+- `PUPPETEER_ARGS` 中缺少 `--headless=new` 导致 X11 错误
+
+**解决方案**:
+在 `PUPPETEER_ARGS` 环境变量中添加完整的 headless 参数：
+```dockerfile
+ENV PUPPETEER_ARGS="--headless=new --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer"
+```
 
 ### 符号链接配置
 
@@ -120,9 +134,11 @@ CMD sh -c "agent-tars --ui --port 8080 \
 
 **环境变量**:
 ```dockerfile
+ENV PUPPETEER_ARGS="--headless=new --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer"
 ENV DISPLAY=:99
 ```
-- 防止 Chromium 尝试连接 X server
+- `PUPPETEER_ARGS`: **关键！** browser_search 提供商使用此环境变量
+- `DISPLAY`: 防止 Chromium 尝试连接 X server
 
 ### 浏览器参数说明
 
@@ -167,7 +183,7 @@ docker logs agent-tars 2>&1 | grep -E "(browser_search|BrowserSearch)"
 
 ## 总结
 
-**问题**: `browser_search` 在 Docker 中不可用
+**问题**: `browser_search` 在 Docker 中不可用，报错 "Invalid search data format"
 
 **根本原因**:
 1. **浏览器检测问题**: `chrome-paths` 使用 `which` 命令查找浏览器
@@ -179,6 +195,12 @@ docker logs agent-tars 2>&1 | grep -E "(browser_search|BrowserSearch)"
    - 旧版 `--headless` 仍然尝试初始化 X11/Ozone 平台
    - `ui/ozone/platform/x11` 尝试连接 X server
 
+3. **配置分离问题**: **最关键的发现！**
+   - `--browser` 参数只影响浏览器控制工具（browser_navigate, browser_get_markdown 等）
+   - `browser_search` 提供商使用 `SearchToolProvider` 和 `BrowserManager`
+   - 这些组件使用 `PUPPETEER_ARGS` 环境变量，而不是 `--browser` 参数
+   - `PUPPETEER_ARGS` 中缺少 `--headless=new` 导致 browser_search 启动失败
+
 **最终解决方案**:
 1. **创建正确的符号链接**:
    ```bash
@@ -187,42 +209,57 @@ docker logs agent-tars 2>&1 | grep -E "(browser_search|BrowserSearch)"
    ln -s /usr/bin/chromium /usr/bin/chromium-browser
    ```
 
-2. **使用新版 headless 模式**:
+2. **配置 PUPPETEER_ARGS 环境变量**（**最关键！**）:
+   ```dockerfile
+   ENV PUPPETEER_ARGS="--headless=new --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer"
+   ```
+   - `--headless=new`: 新版 headless 模式，不依赖 X11
+   - `--no-sandbox`: Docker 容器中必需
+   - `--disable-gpu`: 禁用 GPU
+   - `--disable-software-rasterizer`: 禁用软件光栅化
+
+3. **配置 --browser 参数**（用于浏览器控制工具）:
    ```json
    {"executablePath":"/usr/bin/chromium","args":["--headless=new","--no-sandbox","--disable-setuid-sandbox","--disable-dev-shm-usage","--disable-gpu","--disable-software-rasterizer"]}
    ```
-   - `--headless=new`: 新版 headless 模式，不依赖 X11
-   - `--disable-software-rasterizer`: 禁用软件光栅化
 
-3. **设置环境变量**:
+4. **设置 DISPLAY 环境变量**:
    ```bash
    ENV DISPLAY=:99
    ```
    - 防止 Chromium 尝试连接 X server
 
-4. **启用 browser_search**:
+5. **启用 browser_search**:
    ```bash
    --search.provider browser_search --search.count 10
    ```
 
 **关键洞察**:
-- 通过查看源码找到真正的问题
+- 通过查看源码和 GitHub Issues 找到真正的问题
 - 不是绕过问题，而是真正解决问题
 - 符号链接的名称和优先级很重要
 - Docker 容器中必须使用 `--headless=new` 模式（旧版 `--headless` 不够）
-- 新版 headless 模式完全不依赖 X11，是 Docker 的最佳选择
+- **Agent TARS 有两个独立的浏览器配置路径**：
+  - `--browser` 参数 → 浏览器控制工具
+  - `PUPPETEER_ARGS` 环境变量 → browser_search 提供商
+- 必须同时配置两者才能完全工作
 
 **验证**:
 - ✅ Chromium 命令行测试成功
 - ✅ 能够正常抓取网页内容
 - ✅ 无 X11 相关错误
+- ✅ google-chrome-stable 符号链接已创建
+- ✅ PUPPETEER_ARGS 包含 --headless=new
 
 **状态**: ✅ 已实现并提交到 GitHub
 
 ---
 
 **更新时间**: 2025-12-12
-**版本**: Build #31 (真正的最终版本)
+**版本**: Build #32 (真正的最终版本)
 
-**源码参考**: `/usr/local/lib/node_modules/@agent-tars/cli/node_modules/@agent-infra/browser/dist/browser-finder/chrome-paths.js`
+**参考资料**:
+- GitHub Issue #399: browser_navigate 失败
+- GitHub Issue #428: 配置 headless for mcp browser
+- 源码参考: `/usr/local/lib/node_modules/@agent-tars/cli/node_modules/@agent-infra/browser/dist/browser-finder/chrome-paths.js`
 
