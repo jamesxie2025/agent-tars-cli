@@ -12,12 +12,17 @@
 ### 1. 清理临时文件 ✅
 已删除 14 个无关文件，保持项目简洁
 
-### 2. 修复浏览器搜索功能 ✅
+### 2. 修复浏览器搜索和网页抓取功能 ✅
 - ✅ 添加 `/opt/google/chrome` 路径符号链接
 - ✅ 明确指定浏览器可执行文件路径: `/usr/bin/chromium`
 - ✅ 切换到 `dom` 控制模式（hybrid 仅支持 Doubao 1.5 VL）
-- ✅ 添加 `CHROME_EXECUTABLE_PATH` 环境变量
-- ✅ 修复 `browser_search` 提供商无法找到浏览器的问题
+- ✅ 添加 Docker 容器必需的 Chromium 参数:
+  - `--no-sandbox` - Docker 容器中必需
+  - `--disable-setuid-sandbox` - 禁用沙箱
+  - `--disable-dev-shm-usage` - 避免共享内存问题
+  - `--disable-gpu` - 无头模式禁用 GPU
+- ✅ 添加 `PUPPETEER_ARGS` 环境变量
+- ✅ 测试通过：可以成功抓取网页内容
 
 ### 3. 修复 Chart MCP 配置 ✅
 - ✅ 更新为正确的包名: `@antv/mcp-server-chart`
@@ -76,11 +81,18 @@
 
 ## ⏳ 等待 GitHub Actions 构建
 
-### 新镜像构建中
+### 新镜像构建中 (Build #14)
 **包含的修复**:
 1. ✅ 浏览器搜索功能 - 明确指定浏览器路径
-2. ✅ Chart MCP 配置 - 使用正确的 @antv/mcp-server-chart 包
-3. ✅ DOM 浏览器控制模式
+2. ✅ Docker 容器浏览器支持 - 添加 --no-sandbox 等必需参数
+3. ✅ Chart MCP 配置 - 使用正确的 @antv/mcp-server-chart 包
+4. ✅ DOM 浏览器控制模式
+
+**本地测试结果**:
+```bash
+✅ Chromium 可以在容器中成功运行
+✅ 可以成功抓取网页内容（已测试 example.com）
+```
 
 **构建完成后的更新步骤**:
 ```bash
