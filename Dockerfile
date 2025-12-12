@@ -76,6 +76,9 @@ RUN groupadd -g 1001 nodejs && \
     mkdir -p /app/data /app/cache /app/generated /app/workspace && \
     chown -R nodejs:nodejs /app
 
+# Copy configuration files
+COPY --chown=nodejs:nodejs agent.config.ts /app/agent.config.ts
+
 # Switch to non-root user
 USER nodejs
 
@@ -91,11 +94,8 @@ VOLUME ["/app/data", "/app/cache", "/app/generated", "/app/workspace"]
 # Explicitly specify browser executable path and args for Docker compatibility
 # browser_search now works because we created google-chrome-stable symlink
 CMD sh -c "agent-tars --ui --port 8080 \
-  --config /app/mcp-config.ts \
+  --config /app/agent.config.ts \
   --workspace /app/workspace \
-  --browser.control dom \
-  --search.provider browser_search \
-  --search.count 10 \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
   --model.id ${TARS_MODEL_NAME:-gpt-4o} \
   --model.baseURL ${TARS_MODEL_BASE_URL:-} \
