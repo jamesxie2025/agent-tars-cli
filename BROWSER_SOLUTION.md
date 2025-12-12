@@ -21,11 +21,13 @@ Core:AgentTARS:LocalEnvironment:SearchToolProvider Search failed: Error [Browser
 
 ## 终极解决方案
 
-### 方案：使用浏览器导航工具代替 browser_search
+### 方案：禁用 browser_search 工具 + 使用浏览器导航工具
 
-**移除**: `--search.provider browser_search`
+**关键发现**: `browser_search` 是 Agent TARS 的**内置工具**，即使不指定 `--search.provider`，该工具仍会被自动注册并尝试使用。
 
-**使用**: Agent TARS 的浏览器导航工具进行搜索
+**解决方案**:
+1. 使用 `--tool.exclude browser_search` 参数完全禁用该工具
+2. 使用 Agent TARS 的浏览器导航工具进行搜索
 
 ### 可用的浏览器工具
 
@@ -84,6 +86,7 @@ CMD sh -c "agent-tars --ui --port 8080 \
   --workspace /app/workspace \
   --browser.control dom \
   --browser '{\"executablePath\":\"/usr/bin/chromium\",\"args\":[\"--no-sandbox\",\"--disable-setuid-sandbox\",\"--disable-dev-shm-usage\",\"--disable-gpu\"]}' \
+  --tool.exclude browser_search \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
   --model.id ${TARS_MODEL_NAME:-gpt-4o} \
   --model.baseURL ${TARS_MODEL_BASE_URL:-} \
@@ -93,7 +96,7 @@ CMD sh -c "agent-tars --ui --port 8080 \
 **关键参数**:
 - `--browser.control dom`: 使用 DOM 控制模式
 - `--browser`: 指定浏览器路径和 Docker 必需参数
-- **移除**: `--search.provider browser_search`
+- `--tool.exclude browser_search`: **禁用 browser_search 内置工具**（关键！）
 
 ### 浏览器参数说明
 
@@ -114,11 +117,16 @@ CMD sh -c "agent-tars --ui --port 8080 \
 ### 测试命令
 
 ```bash
-# 测试网页抓取
+# 1. 测试浏览器可执行
 docker exec agent-tars chromium --headless --no-sandbox --disable-gpu --dump-dom https://www.example.com
 
 # 预期结果
 <html lang="en"><head><title>Example Domain</title>...
+
+# 2. 验证 browser_search 工具已被排除
+docker logs agent-tars 2>&1 | grep browser_search
+
+# 预期结果：应该看不到任何 browser_search 相关错误
 ```
 
 ### 功能测试
@@ -129,14 +137,21 @@ docker exec agent-tars chromium --headless --no-sandbox --disable-gpu --dump-dom
 
 ## 总结
 
-**问题**: `browser_search` 在 Docker 中不可用  
-**原因**: 依赖包的硬编码路径无法识别容器中的浏览器  
-**解决方案**: 使用浏览器导航工具代替  
-**优势**: 更灵活、更强大、无依赖问题  
-**状态**: ✅ 已实现并测试通过
+**问题**: `browser_search` 在 Docker 中不可用
+**根本原因**:
+- `browser_search` 是 Agent TARS 的内置工具
+- 使用 `chrome-paths` 包的硬编码路径查找浏览器
+- 在 Docker 容器中无法找到浏览器
+
+**最终解决方案**:
+- 使用 `--tool.exclude browser_search` 禁用该工具
+- 使用浏览器导航工具代替
+
+**优势**: 更灵活、更强大、无依赖问题
+**状态**: ✅ 已实现并提交到 GitHub
 
 ---
 
-**更新时间**: 2025-12-12  
-**版本**: Build #15
+**更新时间**: 2025-12-12
+**版本**: Build #16 (最终版本)
 
