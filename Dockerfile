@@ -63,7 +63,8 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_ARGS="--headless=new --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer" \
     DISPLAY=:99 \
     TARS_BROWSER_HEADLESS=true \
-    TARS_BROWSER_EXECUTABLE=/usr/bin/chromium
+    TARS_BROWSER_EXECUTABLE=/usr/bin/chromium \
+    TARS_BROWSER_ARGS="--headless=new,--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-gpu,--disable-software-rasterizer"
 
 # Install Agent TARS CLI globally as root
 RUN npm install -g @agent-tars/cli@latest
@@ -96,6 +97,8 @@ VOLUME ["/app/data", "/app/cache", "/app/generated", "/app/workspace"]
 CMD sh -c "agent-tars --ui --port 8080 \
   --config /app/agent.config.ts \
   --workspace /app/workspace \
+  --browser.headless \
+  --browser.executablePath /usr/bin/chromium \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
   --model.id ${TARS_MODEL_NAME:-gpt-4o} \
   --model.baseURL ${TARS_MODEL_BASE_URL:-} \
