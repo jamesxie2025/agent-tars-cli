@@ -23,7 +23,23 @@ export default {
   // Search configuration
   search: {
     provider: "browser_search",
-    count: 10
+    count: 10,
+    browserSearch: {
+      engine: "google",
+      needVisitedUrls: false,
+      browser: {
+        headless: true,
+        executablePath: "/usr/bin/chromium",
+        args: [
+          "--headless=new",
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-gpu",
+          "--disable-software-rasterizer"
+        ]
+      }
+    }
   },
 
   // MCP Servers configuration
