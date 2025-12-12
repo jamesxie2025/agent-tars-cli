@@ -39,12 +39,15 @@ RUN pip3 install --no-cache-dir --break-system-packages \
     numpy
 
 # Create Chrome symlinks for Agent TARS browser detection
-# chrome-paths package checks these specific locations on Linux
-RUN ln -s /usr/bin/chromium /usr/bin/google-chrome && \
-    ln -s /usr/bin/chromium /usr/bin/chrome && \
-    mkdir -p /opt/google/chrome && \
-    ln -s /usr/bin/chromium /opt/google/chrome/chrome && \
-    ln -s /usr/bin/chromium /opt/google/chrome/google-chrome
+# chrome-paths package uses 'which' command to find browsers in this order:
+# 1. google-chrome-stable (chrome branch - first priority)
+# 2. google-chrome (chrome branch - second priority)
+# 3. chromium-browser (canary branch)
+# 4. chromium (canary branch)
+RUN ln -s /usr/bin/chromium /usr/bin/google-chrome-stable && \
+    ln -s /usr/bin/chromium /usr/bin/google-chrome && \
+    ln -s /usr/bin/chromium /usr/bin/chromium-browser && \
+    ln -s /usr/bin/chromium /usr/bin/chrome
 
 # Configure Puppeteer and browser environment variables
 # Add --no-sandbox for Docker container compatibility
@@ -80,14 +83,14 @@ VOLUME ["/app/data", "/app/cache", "/app/generated", "/app/workspace"]
 # Start Agent TARS with model configuration from environment variables
 # Use shell form to allow environment variable substitution
 # Explicitly specify browser executable path and args for Docker compatibility
-# Exclude browser_search tool as it doesn't work in Docker (uses chrome-paths package with hardcoded paths)
-# Users should use browser navigation tools (browser_navigate, browser_get_markdown) for web search
+# browser_search now works because we created google-chrome-stable symlink
 CMD sh -c "agent-tars --ui --port 8080 \
   --config /app/mcp-config.ts \
   --workspace /app/workspace \
   --browser.control dom \
   --browser '{\"executablePath\":\"/usr/bin/chromium\",\"args\":[\"--no-sandbox\",\"--disable-setuid-sandbox\",\"--disable-dev-shm-usage\",\"--disable-gpu\"]}' \
-  --tool.exclude browser_search \
+  --search.provider browser_search \
+  --search.count 10 \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
   --model.id ${TARS_MODEL_NAME:-gpt-4o} \
   --model.baseURL ${TARS_MODEL_BASE_URL:-} \
