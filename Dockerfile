@@ -52,13 +52,14 @@ RUN ln -s /usr/bin/chromium /usr/bin/google-chrome-stable && \
 # Configure Puppeteer and browser environment variables
 # Add --no-sandbox for Docker container compatibility
 # Set DISPLAY to prevent X server connection attempts
+# CRITICAL: Add --headless=new to PUPPETEER_ARGS for browser_search provider
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
     CHROME_BIN=/usr/bin/chromium \
     CHROME_PATH=/usr/bin/chromium \
     CHROMIUM_PATH=/usr/bin/chromium \
     CHROME_EXECUTABLE_PATH=/usr/bin/chromium \
-    PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage" \
+    PUPPETEER_ARGS="--headless=new --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer" \
     DISPLAY=:99
 
 # Install Agent TARS CLI globally as root
