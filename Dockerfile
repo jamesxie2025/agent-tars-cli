@@ -47,12 +47,14 @@ RUN ln -s /usr/bin/chromium /usr/bin/google-chrome && \
     ln -s /usr/bin/chromium /opt/google/chrome/google-chrome
 
 # Configure Puppeteer and browser environment variables
+# Add --no-sandbox for Docker container compatibility
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
     CHROME_BIN=/usr/bin/chromium \
     CHROME_PATH=/usr/bin/chromium \
     CHROMIUM_PATH=/usr/bin/chromium \
-    CHROME_EXECUTABLE_PATH=/usr/bin/chromium
+    CHROME_EXECUTABLE_PATH=/usr/bin/chromium \
+    PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"
 
 # Install Agent TARS CLI globally as root
 RUN npm install -g @agent-tars/cli@latest
@@ -77,12 +79,12 @@ VOLUME ["/app/data", "/app/cache", "/app/generated", "/app/workspace"]
 
 # Start Agent TARS with model configuration from environment variables
 # Use shell form to allow environment variable substitution
-# Explicitly specify browser executable path for browser_search
+# Explicitly specify browser executable path and args for Docker compatibility
 CMD sh -c "agent-tars --ui --port 8080 \
   --config /app/mcp-config.ts \
   --workspace /app/workspace \
   --browser.control dom \
-  --browser '{\"executablePath\":\"/usr/bin/chromium\"}' \
+  --browser '{\"executablePath\":\"/usr/bin/chromium\",\"args\":[\"--no-sandbox\",\"--disable-setuid-sandbox\",\"--disable-dev-shm-usage\",\"--disable-gpu\"]}' \
   --search.provider browser_search \
   --search.count 10 \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
