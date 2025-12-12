@@ -88,7 +88,7 @@ CMD sh -c "agent-tars --ui --port 8080 \
   --config /app/mcp-config.ts \
   --workspace /app/workspace \
   --browser.control dom \
-  --browser '{\"executablePath\":\"/usr/bin/chromium\",\"args\":[\"--no-sandbox\",\"--disable-setuid-sandbox\",\"--disable-dev-shm-usage\",\"--disable-gpu\"]}' \
+  --browser '{\"executablePath\":\"/usr/bin/chromium\",\"args\":[\"--headless\",\"--no-sandbox\",\"--disable-setuid-sandbox\",\"--disable-dev-shm-usage\",\"--disable-gpu\"]}' \
   --search.provider browser_search \
   --search.count 10 \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
