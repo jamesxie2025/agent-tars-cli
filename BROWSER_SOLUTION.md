@@ -6,9 +6,15 @@
 
 `browser_search` 提供商在 Docker 容器中无法工作的根本原因：
 
-1. **内部依赖**: `browser_search` 内部使用 `chrome-paths`, `edge-paths`, `firefox-paths` npm 包来查找浏览器
-2. **硬编码路径**: 这些包有硬编码的搜索路径，无法识别容器中的 Chromium 安装
-3. **无法绕过**: 符号链接、环境变量、`--browser` 参数都无法解决此问题，因为这些包不读取这些配置
+1. **内部依赖**: `browser_search` 内部使用 `chrome-paths` 包（来自 `@agent-infra/browser`）来查找浏览器
+2. **查找机制**: `chrome-paths` 使用 `which` 命令按特定顺序查找浏览器：
+   - **chrome 分支**（优先级高）:
+     1. `google-chrome-stable` ← **最高优先级**
+     2. `google-chrome`
+   - **canary 分支**（优先级低）:
+     3. `chromium-browser`
+     4. `chromium`
+3. **之前的错误**: 只创建了 `google-chrome` 符号链接，缺少 `google-chrome-stable`
 
 ### 错误日志
 
@@ -21,60 +27,66 @@ Core:AgentTARS:LocalEnvironment:SearchToolProvider Search failed: Error [Browser
 
 ## 终极解决方案
 
-### 方案：禁用 browser_search 工具 + 使用浏览器导航工具
+### 方案：创建正确的符号链接
 
-**关键发现**: `browser_search` 是 Agent TARS 的**内置工具**，即使不指定 `--search.provider`，该工具仍会被自动注册并尝试使用。
+**关键发现**: 通过查看 `chrome-paths` 源码发现，它使用 `which` 命令查找浏览器，且 `google-chrome-stable` 是**最高优先级**。
 
 **解决方案**:
-1. 使用 `--tool.exclude browser_search` 参数完全禁用该工具
-2. 使用 Agent TARS 的浏览器导航工具进行搜索
+1. 创建 `google-chrome-stable` 符号链接指向 `/usr/bin/chromium`
+2. 创建其他符号链接作为备选
+3. 恢复使用 `--search.provider browser_search` 参数
 
-### 可用的浏览器工具
+### 符号链接配置
 
-1. **browser_navigate** - 导航到任何网页
-2. **browser_get_markdown** - 提取网页内容（Markdown 格式）
-3. **browser_vision_control** - 视觉交互（点击、滚动、输入）
-4. **browser_click** - DOM 点击
-5. **browser_type** - DOM 输入
-6. **browser_back/forward/refresh** - 浏览器导航
+```bash
+# Dockerfile 中的配置
+RUN ln -s /usr/bin/chromium /usr/bin/google-chrome-stable && \
+    ln -s /usr/bin/chromium /usr/bin/google-chrome && \
+    ln -s /usr/bin/chromium /usr/bin/chromium-browser && \
+    ln -s /usr/bin/chromium /usr/bin/chrome
+```
+
+**说明**:
+- `google-chrome-stable` - chrome-paths 的第一选择（最重要！）
+- `google-chrome` - chrome-paths 的第二选择
+- `chromium-browser` - canary 分支的第一选择
+- `chromium` - canary 分支的第二选择（已存在）
 
 ### 使用示例
 
-#### 搜索天气信息
+#### 使用 browser_search 搜索
 
 **用户请求**:
 ```
 请搜索深圳未来三天的天气情况
 ```
 
-**Agent 执行流程**:
-1. `browser_navigate` → `https://www.google.com/search?q=深圳未来三天天气`
-2. `browser_get_markdown` → 提取搜索结果
-3. `browser_vision_control` → 点击相关链接
-4. `browser_get_markdown` → 提取天气详情
-5. 总结并返回结果
+**Agent 执行**:
+- 使用内置的 `browser_search` 工具
+- 自动打开浏览器搜索
+- 返回搜索结果
 
-#### 访问特定网站
+#### 使用浏览器导航工具
 
 **用户请求**:
 ```
 请访问 https://www.weather.com.cn 并提取深圳的天气信息
 ```
 
-**Agent 执行流程**:
-1. `browser_navigate` → `https://www.weather.com.cn`
-2. `browser_get_markdown` → 提取页面内容
-3. 分析并返回深圳天气信息
+**Agent 执行**:
+1. `browser_navigate` → 访问网站
+2. `browser_get_markdown` → 提取内容
+3. 分析并返回结果
 
 ## 优势
 
-### 相比 browser_search 的优势
+### 真正解决问题的优势
 
-1. **完全可控**: 不依赖第三方包的浏览器检测
-2. **更灵活**: 可以访问任何网站，不限于搜索引擎
-3. **更强大**: 可以进行复杂的交互（点击、滚动、表单填写）
-4. **无依赖问题**: 在 Docker 容器中完美工作
-5. **更透明**: 用户可以看到 Agent 的每一步操作
+1. **使用内置功能**: 充分利用 Agent TARS 的 `browser_search` 工具
+2. **无需绕过**: 不需要禁用或排除任何功能
+3. **完整功能**: 所有浏览器相关工具都可用
+4. **简单直接**: 只需创建正确的符号链接
+5. **符合设计**: 按照 chrome-paths 的预期方式工作
 
 ## 配置说明
 
@@ -86,7 +98,8 @@ CMD sh -c "agent-tars --ui --port 8080 \
   --workspace /app/workspace \
   --browser.control dom \
   --browser '{\"executablePath\":\"/usr/bin/chromium\",\"args\":[\"--no-sandbox\",\"--disable-setuid-sandbox\",\"--disable-dev-shm-usage\",\"--disable-gpu\"]}' \
-  --tool.exclude browser_search \
+  --search.provider browser_search \
+  --search.count 10 \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
   --model.id ${TARS_MODEL_NAME:-gpt-4o} \
   --model.baseURL ${TARS_MODEL_BASE_URL:-} \
@@ -96,7 +109,8 @@ CMD sh -c "agent-tars --ui --port 8080 \
 **关键参数**:
 - `--browser.control dom`: 使用 DOM 控制模式
 - `--browser`: 指定浏览器路径和 Docker 必需参数
-- `--tool.exclude browser_search`: **禁用 browser_search 内置工具**（关键！）
+- `--search.provider browser_search`: **启用 browser_search**（现在可以工作了！）
+- `--search.count 10`: 搜索结果数量
 
 ### 浏览器参数说明
 
@@ -117,41 +131,53 @@ CMD sh -c "agent-tars --ui --port 8080 \
 ### 测试命令
 
 ```bash
-# 1. 测试浏览器可执行
+# 1. 验证符号链接已创建
+docker exec agent-tars which google-chrome-stable
+# 预期结果: /usr/bin/google-chrome-stable
+
+docker exec agent-tars which google-chrome
+# 预期结果: /usr/bin/google-chrome
+
+# 2. 测试浏览器可执行
 docker exec agent-tars chromium --headless --no-sandbox --disable-gpu --dump-dom https://www.example.com
+# 预期结果: <html lang="en"><head><title>Example Domain</title>...
 
-# 预期结果
-<html lang="en"><head><title>Example Domain</title>...
-
-# 2. 验证 browser_search 工具已被排除
-docker logs agent-tars 2>&1 | grep browser_search
-
-# 预期结果：应该看不到任何 browser_search 相关错误
+# 3. 验证 browser_search 工具正常工作
+docker logs agent-tars 2>&1 | grep -E "(browser_search|BrowserSearch)"
+# 预期结果：应该看不到任何错误，或者看到成功的搜索日志
 ```
 
 ### 功能测试
 
-1. **网页搜索**: "请打开 Google 搜索'深圳天气'并总结结果"
+1. **使用 browser_search**: "请搜索深圳未来三天的天气情况"
 2. **网页抓取**: "请访问 https://www.weather.com.cn 并提取深圳的天气信息"
 3. **复杂交互**: "请在 booking.com 上搜索深圳的酒店"
 
 ## 总结
 
 **问题**: `browser_search` 在 Docker 中不可用
+
 **根本原因**:
-- `browser_search` 是 Agent TARS 的内置工具
-- 使用 `chrome-paths` 包的硬编码路径查找浏览器
-- 在 Docker 容器中无法找到浏览器
+- `chrome-paths` 使用 `which` 命令查找浏览器
+- 查找顺序：`google-chrome-stable` > `google-chrome` > `chromium-browser` > `chromium`
+- 之前只创建了 `google-chrome` 符号链接，缺少最高优先级的 `google-chrome-stable`
 
 **最终解决方案**:
-- 使用 `--tool.exclude browser_search` 禁用该工具
-- 使用浏览器导航工具代替
+- 创建 `google-chrome-stable` 符号链接指向 `/usr/bin/chromium`
+- 恢复使用 `--search.provider browser_search` 参数
+- 充分利用 Agent TARS 的内置搜索功能
 
-**优势**: 更灵活、更强大、无依赖问题
+**关键洞察**:
+- 通过查看源码找到真正的问题
+- 不是绕过问题，而是真正解决问题
+- 符号链接的名称和优先级很重要
+
 **状态**: ✅ 已实现并提交到 GitHub
 
 ---
 
 **更新时间**: 2025-12-12
-**版本**: Build #16 (最终版本)
+**版本**: Build #17 (真正的最终版本)
+
+**源码参考**: `/usr/local/lib/node_modules/@agent-tars/cli/node_modules/@agent-infra/browser/dist/browser-finder/chrome-paths.js`
 
