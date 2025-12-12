@@ -2,15 +2,17 @@
 
 ## ✅ 已启用的功能
 
-### 🌐 浏览器自动化和网页搜索
+### 🌐 浏览器自动化和网页抓取
 - **浏览器控制**: 内置 Chromium 浏览器，支持网页自动化
-- **网页搜索**: 使用 `browser_search` 提供商进行网页搜索
-- **搜索结果数**: 默认返回 10 条搜索结果
-- **控制模式**: hybrid（混合模式，结合 DOM 和视觉定位）
+- **网页导航**: 使用 `browser_navigate` 访问任何网页
+- **内容提取**: 使用 `browser_get_markdown` 提取网页内容
+- **视觉交互**: 使用 `browser_vision_control` 点击、滚动、输入
+- **控制模式**: DOM（基于 DOM 的精确控制）
 
 **使用示例**:
 ```
-请搜索深圳未来三天的天气情况
+请访问 https://www.weather.com.cn 并提取深圳的天气信息
+请打开 Google 搜索"深圳未来三天天气"并总结结果
 请访问 https://www.example.com 并提取主要内容
 ```
 
@@ -80,9 +82,8 @@
 ## 🔧 配置参数
 
 ### 浏览器配置
-- `--browser.control hybrid`: 混合控制模式
-- `--search.provider browser_search`: 浏览器搜索
-- `--search.count 10`: 搜索结果数量
+- `--browser.control dom`: DOM 控制模式
+- `--browser`: 浏览器可执行文件路径和参数（JSON 格式）
 
 ### 模型配置
 - `--model.provider`: 模型提供商
@@ -92,9 +93,9 @@
 
 ## 📊 功能测试
 
-### 测试浏览器搜索
+### 测试网页搜索
 ```
-请搜索"深圳天气"并总结结果
+请打开 Google 搜索"深圳天气"并总结结果
 ```
 
 ### 测试网页抓取
@@ -118,10 +119,11 @@
 
 ## ⚠️ 注意事项
 
-1. **浏览器搜索**: 使用内置的 browser_search，无需额外 API
+1. **网页搜索**: 使用浏览器导航工具（browser_navigate + browser_get_markdown）进行搜索，无需额外 API
 2. **Chart MCP**: 使用 @antv/mcp-server-chart（正确的包名）
 3. **文件清理**: 定期运行 `./cleanup.sh` 清理临时文件
 4. **镜像版本**: 保持稳定，避免频繁更改
+5. **Docker 环境**: 浏览器使用 --no-sandbox 参数以支持容器环境
 
 ## 🚀 快速开始
 

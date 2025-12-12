@@ -12,7 +12,7 @@
 ### 1. 清理临时文件 ✅
 已删除 14 个无关文件，保持项目简洁
 
-### 2. 修复浏览器搜索和网页抓取功能 ✅
+### 2. 修复浏览器网页抓取功能 ✅
 - ✅ 添加 `/opt/google/chrome` 路径符号链接
 - ✅ 明确指定浏览器可执行文件路径: `/usr/bin/chromium`
 - ✅ 切换到 `dom` 控制模式（hybrid 仅支持 Doubao 1.5 VL）
@@ -21,7 +21,8 @@
   - `--disable-setuid-sandbox` - 禁用沙箱
   - `--disable-dev-shm-usage` - 避免共享内存问题
   - `--disable-gpu` - 无头模式禁用 GPU
-- ✅ 添加 `PUPPETEER_ARGS` 环境变量
+- ✅ 移除 `browser_search` 提供商（在 Docker 中不可用）
+- ✅ 使用浏览器导航工具代替（browser_navigate + browser_get_markdown）
 - ✅ 测试通过：可以成功抓取网页内容
 
 ### 3. 修复 Chart MCP 配置 ✅
