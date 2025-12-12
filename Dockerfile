@@ -80,13 +80,14 @@ VOLUME ["/app/data", "/app/cache", "/app/generated", "/app/workspace"]
 # Start Agent TARS with model configuration from environment variables
 # Use shell form to allow environment variable substitution
 # Explicitly specify browser executable path and args for Docker compatibility
-# Note: browser_search provider doesn't work in Docker due to browser path detection issues
+# Exclude browser_search tool as it doesn't work in Docker (uses chrome-paths package with hardcoded paths)
 # Users should use browser navigation tools (browser_navigate, browser_get_markdown) for web search
 CMD sh -c "agent-tars --ui --port 8080 \
   --config /app/mcp-config.ts \
   --workspace /app/workspace \
   --browser.control dom \
   --browser '{\"executablePath\":\"/usr/bin/chromium\",\"args\":[\"--no-sandbox\",\"--disable-setuid-sandbox\",\"--disable-dev-shm-usage\",\"--disable-gpu\"]}' \
+  --tool.exclude browser_search \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
   --model.id ${TARS_MODEL_NAME:-gpt-4o} \
   --model.baseURL ${TARS_MODEL_BASE_URL:-} \
