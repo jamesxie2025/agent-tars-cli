@@ -97,7 +97,7 @@ CMD sh -c "agent-tars --ui --port 8080 \
   --config /app/mcp-config.ts \
   --workspace /app/workspace \
   --browser.control dom \
-  --browser '{\"executablePath\":\"/usr/bin/chromium\",\"args\":[\"--no-sandbox\",\"--disable-setuid-sandbox\",\"--disable-dev-shm-usage\",\"--disable-gpu\"]}' \
+  --browser '{\"executablePath\":\"/usr/bin/chromium\",\"args\":[\"--headless\",\"--no-sandbox\",\"--disable-setuid-sandbox\",\"--disable-dev-shm-usage\",\"--disable-gpu\"]}' \
   --search.provider browser_search \
   --search.count 10 \
   --model.provider ${TARS_MODEL_PROVIDER:-openai} \
@@ -109,6 +109,11 @@ CMD sh -c "agent-tars --ui --port 8080 \
 **关键参数**:
 - `--browser.control dom`: 使用 DOM 控制模式
 - `--browser`: 指定浏览器路径和 Docker 必需参数
+  - `--headless`: **无头模式（Docker 必需！）**
+  - `--no-sandbox`: Docker 容器中必需
+  - `--disable-setuid-sandbox`: 禁用 setuid 沙箱
+  - `--disable-dev-shm-usage`: 避免共享内存问题
+  - `--disable-gpu`: 无头模式禁用 GPU
 - `--search.provider browser_search`: **启用 browser_search**（现在可以工作了！）
 - `--search.count 10`: 搜索结果数量
 
@@ -158,26 +163,43 @@ docker logs agent-tars 2>&1 | grep -E "(browser_search|BrowserSearch)"
 **问题**: `browser_search` 在 Docker 中不可用
 
 **根本原因**:
-- `chrome-paths` 使用 `which` 命令查找浏览器
-- 查找顺序：`google-chrome-stable` > `google-chrome` > `chromium-browser` > `chromium`
-- 之前只创建了 `google-chrome` 符号链接，缺少最高优先级的 `google-chrome-stable`
+1. **浏览器检测问题**: `chrome-paths` 使用 `which` 命令查找浏览器
+   - 查找顺序：`google-chrome-stable` > `google-chrome` > `chromium-browser` > `chromium`
+   - 之前只创建了 `google-chrome` 符号链接，缺少最高优先级的 `google-chrome-stable`
+2. **浏览器启动问题**: Docker 容器中没有图形界面
+   - 错误：`Missing X server or $DISPLAY`
+   - 需要 `--headless` 参数
 
 **最终解决方案**:
-- 创建 `google-chrome-stable` 符号链接指向 `/usr/bin/chromium`
-- 恢复使用 `--search.provider browser_search` 参数
-- 充分利用 Agent TARS 的内置搜索功能
+1. **创建正确的符号链接**:
+   ```bash
+   ln -s /usr/bin/chromium /usr/bin/google-chrome-stable
+   ln -s /usr/bin/chromium /usr/bin/google-chrome
+   ln -s /usr/bin/chromium /usr/bin/chromium-browser
+   ```
+
+2. **添加 --headless 参数**:
+   ```json
+   {"executablePath":"/usr/bin/chromium","args":["--headless","--no-sandbox","--disable-setuid-sandbox","--disable-dev-shm-usage","--disable-gpu"]}
+   ```
+
+3. **启用 browser_search**:
+   ```bash
+   --search.provider browser_search --search.count 10
+   ```
 
 **关键洞察**:
 - 通过查看源码找到真正的问题
 - 不是绕过问题，而是真正解决问题
 - 符号链接的名称和优先级很重要
+- Docker 容器中必须使用 --headless 模式
 
 **状态**: ✅ 已实现并提交到 GitHub
 
 ---
 
 **更新时间**: 2025-12-12
-**版本**: Build #17 (真正的最终版本)
+**版本**: Build #30 (真正的最终版本)
 
 **源码参考**: `/usr/local/lib/node_modules/@agent-tars/cli/node_modules/@agent-infra/browser/dist/browser-finder/chrome-paths.js`
 
