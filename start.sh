@@ -23,18 +23,20 @@ if [ "$NODE_VERSION" -lt 18 ]; then
     exit 1
 fi
 
-# Check if .env.local or .env file exists
-if [ -f .env.local ]; then
-    ENV_FILE=.env.local
-    echo "📝 Using .env.local for configuration"
-elif [ -f .env ]; then
-    ENV_FILE=.env
-    echo "📝 Using .env for configuration"
-else
-    echo "❌ Error: No .env or .env.local file found"
-    echo "Please copy .env.example to .env.local and add your API keys"
+# Check if .env file exists
+if [ ! -f .env ]; then
+    echo "❌ Error: .env file not found"
+    echo ""
+    echo "Please create .env file with your API keys:"
+    echo "  1. Copy from a template: cp .env.local.qwen .env"
+    echo "  2. Or copy from example: cp .env.example .env"
+    echo "  3. Then edit .env and add your real API keys"
+    echo ""
     exit 1
 fi
+
+ENV_FILE=.env
+echo "📝 Using .env for configuration"
 
 # Create necessary directories
 mkdir -p cache data generated workspace

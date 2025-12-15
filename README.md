@@ -37,8 +37,31 @@ A powerful AI agent with web search, file operations, chart generation, and more
    ```
 
 3. **Configure environment**:
-   - Edit `.env` file with your API keys
-   - Default model: `Qwen/Qwen3-Coder-480B-A35B-Instruct` via ModelScope
+
+   **Option A: Use pre-configured templates (Recommended)**
+   ```bash
+   # For Qwen (ModelScope)
+   cp .env.local.qwen .env
+
+   # For DeepSeek
+   cp .env.local.deepseek .env
+
+   # For OpenAI GPT-4o
+   cp .env.local.openai .env
+   ```
+
+   **Option B: Create from example**
+   ```bash
+   cp .env.example .env
+   ```
+
+   Then edit `.env` and add your real API keys:
+   ```bash
+   # Edit with your favorite editor
+   nano .env
+   # or
+   vim .env
+   ```
 
 4. **Start Agent TARS**:
    ```bash

@@ -1,6 +1,6 @@
-# Environment variables
-.env.local
-.env.*.local
+# Environment variables (real API keys)
+.env
+.env.local*
 .env.backup
 
 # Node modules
