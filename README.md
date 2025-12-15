@@ -1,249 +1,148 @@
-# Agent TARS CLI - Docker 部署
+# Agent TARS CLI
 
-基于字节跳动 Agent TARS 的 Docker 镜像部署方案。
+🤖 **Agent TARS** - Multimodal AI Agent by ByteDance
 
-## 📖 完整部署指南
+A powerful AI agent with web search, file operations, chart generation, and more capabilities powered by Qwen3-Coder or DeepSeek models.
 
-**👉 如果你是第一次部署，请查看详细的部署指南：[DEPLOYMENT.md](DEPLOYMENT.md)**
+## ✨ Features
 
-该指南包含：
-- ✅ 详细的前置准备（Docker 安装、API Key 获取等）
-- ✅ 逐步部署说明（适合小白用户）
-- ✅ 常见问题解答
-- ✅ 使用示例和常用命令
+- 🌐 **Web Search**: Built-in web search with Google
+- 📁 **File Operations**: Read/write files via MCP filesystem server
+- 📊 **Chart Generation**: Create visualizations with 25+ chart types
+- 📑 **Excel Processing**: Read and write Excel files
+- 🗄️ **SQLite Database**: Structured data storage
+- �� **Persistent Memory**: Remember context across sessions
+- 🔧 **Git Operations**: Version control integration
+- 🎨 **Multimodal**: Support for vision-capable models (GPT-4o, Qwen-VL)
 
----
+## 🚀 Quick Start
 
-## 🚀 快速开始（从 GitHub 拉取镜像）
+### Prerequisites
 
-### 前置要求
+- **Node.js** 18+ ([Download](https://nodejs.org/))
+- **npm** 9+
+- **API Keys**: ModelScope or DeepSeek API key
 
-- Docker 和 Docker Compose 已安装
-- 至少一个 AI 模型的 API Key
+### Installation
 
-### 步骤 1: 克隆配置文件
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/jamesxie2025/agent-tars-cli.git
+   cd agent-tars-cli
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment**:
+   - Edit `.env` file with your API keys
+   - Default model: `Qwen/Qwen3-Coder-480B-A35B-Instruct` via ModelScope
+
+4. **Start Agent TARS**:
+   ```bash
+   ./start.sh
+   # or
+   npm start
+   ```
+
+5. **Access Web UI**:
+   - Open http://localhost:8080 in your browser
+
+## 📋 Configuration
+
+### Model Configuration
+
+Edit `.env` to configure your model:
+
+**Option 1: Qwen3-Coder (ModelScope)** - Default
+```bash
+TARS_MODEL_PROVIDER=openai
+TARS_MODEL_NAME=Qwen/Qwen3-Coder-480B-A35B-Instruct
+TARS_MODEL_BASE_URL=https://api-inference.modelscope.cn/v1
+TARS_MODEL_API_KEY=your-modelscope-api-key
+```
+
+**Option 2: DeepSeek-Chat**
+```bash
+TARS_MODEL_PROVIDER=openai
+TARS_MODEL_NAME=deepseek-chat
+TARS_MODEL_BASE_URL=https://api.deepseek.com/v1
+TARS_MODEL_API_KEY=your-deepseek-api-key
+```
+
+**Option 3: GPT-4o (OpenAI)**
+```bash
+TARS_MODEL_PROVIDER=openai
+TARS_MODEL_NAME=gpt-4o
+TARS_MODEL_BASE_URL=https://api.openai.com/v1
+TARS_MODEL_API_KEY=your-openai-api-key
+```
+
+### Vision Support
+
+Edit `agent.config.ts`:
+```typescript
+model: {
+  enableVision: true  // true for GPT-4o, Qwen-VL; false for text-only models
+}
+```
+
+## 🛠️ Available Commands
 
 ```bash
-git clone https://github.com/jamesxie2025/agent-tars-cli.git
-cd agent-tars-cli
+npm start          # Start Agent TARS
+npm run dev        # Start in development mode
+npm run stop       # Stop Agent TARS
+npm run restart    # Restart Agent TARS
+npm run logs       # View logs
+npm run clean      # Clean cache and generated files
+npm test           # Check installation
 ```
 
-### 步骤 2: 配置环境变量
-
-```bash
-# 复制环境变量模板
-cp .env.example .env
-
-# 编辑 .env 文件，填入你的 API Key
-nano .env
-```
-
-**至少配置一个模型提供商：**
-
-```env
-# 选择一个配置
-ANTHROPIC_API_KEY=your_key_here
-# 或
-OPENAI_API_KEY=your_key_here
-# 或
-DEEPSEEK_API_KEY=your_key_here
-# 或
-MODELSCOPE_API_KEY=your_key_here
-```
-
-### 步骤 3: 启动服务
-
-```bash
-# 拉取最新镜像并启动
-docker-compose pull
-docker-compose up -d
-
-# 查看日志
-docker-compose logs -f
-```
-
-### 步骤 4: 访问 Web UI
-
-打开浏览器访问：`http://localhost:8080`
-
----
-
-## 📦 使用预构建镜像
-
-### 方式一：Docker Compose（推荐）
-
-```bash
-docker-compose up -d
-```
-
-### 方式二：直接使用 Docker
-
-```bash
-# 拉取镜像
-docker pull ghcr.io/jamesxie2025/agent-tars-cli:latest
-
-# 运行容器
-docker run -d \
-  --name agent-tars \
-  -p 8080:8080 \
-  -v $(pwd)/data:/app/data \
-  -v $(pwd)/cache:/app/cache \
-  -v $(pwd)/generated:/app/generated \
-  -v $(pwd)/mcp-config.ts:/app/mcp-config.ts:ro \
-  --env-file .env \
-  ghcr.io/jamesxie2025/agent-tars-cli:latest
-```
-
----
-
-## 🔧 配置说明
-
-### 支持的模型提供商
-
-| 提供商 | 环境变量 | 获取地址 |
-|--------|----------|----------|
-| Anthropic (Claude) | `ANTHROPIC_API_KEY` | https://console.anthropic.com/settings/keys |
-| OpenAI | `OPENAI_API_KEY` | https://platform.openai.com/api-keys |
-| DeepSeek | `DEEPSEEK_API_KEY` | https://platform.deepseek.com/api_keys |
-| ModelScope (Qwen) | `MODELSCOPE_API_KEY` | https://modelscope.cn/my/myaccesstoken |
-| VolcEngine (豆包) | `VOLCENGINE_API_KEY` | https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey |
-
-### MCP 工具配置
-
-编辑 `mcp-config.ts` 来启用/禁用 MCP 工具。
-
-**完整版配置** (`mcp-config.ts`)：
-- **filesystem**: 文件操作
-- **excel**: Excel 文件处理
-- **chart**: 图表生成
-- **memory**: 持久化记忆
-- **git**: Git 操作
-- **sqlite**: 本地数据库
-
-**精简版配置** (`mcp-config.minimal.ts`)：
-- **filesystem**: 文件操作
-- **memory**: 持久化记忆
-- **git**: Git 操作
-- **sqlite**: 本地数据库
-
-如果遇到工具加载问题，可以使用精简版：
-```bash
-# 备份原配置
-mv mcp-config.ts mcp-config.ts.backup
-
-# 使用精简版
-cp mcp-config.minimal.ts mcp-config.ts
-
-# 重启容器
-docker-compose restart
-```
-
-可选工具（需要配置 API Key）：
-- **brave-search**: 网络搜索
-- **github**: GitHub 集成
-- **postgres**: PostgreSQL 数据库
-
----
-
-## 📁 目录结构
+## 📁 Project Structure
 
 ```
 agent-tars-cli/
-├── .env                      # 环境变量（不提交到 Git）
-├── .env.example              # 环境变量模板
-├── docker-compose.yml        # Docker Compose 配置
-├── Dockerfile                # Docker 镜像构建文件
-├── mcp-config.ts             # MCP 工具配置（完整版）
-├── mcp-config.minimal.ts     # MCP 工具配置（精简版）
-├── DEPLOYMENT_GUIDE.md       # 📖 详细部署指南
-├── CONFIGURATION.md          # 📖 模型配置指南
-├── DOCKER_CLEANUP.md         # 📖 Docker 清理指南
-├── data/                     # 数据目录（持久化）
-├── cache/                    # 缓存目录（持久化）
-└── generated/                # 生成文件目录（持久化）
+├── agent.config.ts      # Agent TARS configuration
+├── .env                 # Environment variables (API keys)
+├── package.json         # Node.js dependencies
+├── start.sh             # Startup script
+├── data/                # Persistent data (gitignored)
+├── cache/               # Cache files (gitignored)
+├── generated/           # Generated files (gitignored)
+└── workspace/           # Working directory (gitignored)
 ```
 
----
+## 🔧 Troubleshooting
 
-## 📖 文档索引
+### Web Search Not Working
 
-- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - 完整的部署指南，适用于任何 Mac 电脑
-- **[CONFIGURATION.md](CONFIGURATION.md)** - 如何更换 AI 模型和配置 API
-- **[DOCKER_CLEANUP.md](DOCKER_CLEANUP.md)** - 如何清理 Docker 镜像和释放空间
+Make sure you have:
+1. ✅ Chrome or Chromium installed on your system
+2. ✅ VPN enabled if accessing Google from restricted regions
+3. ✅ `enableVision: true` in `agent.config.ts` for vision-capable models
 
----
+### Model API Errors
 
-## 🛠️ 常用命令
+- Check your API key in `.env`
+- Verify the model name and base URL
+- Check API quota and rate limits
 
-```bash
-# 启动服务
-docker-compose up -d
+## 📚 Documentation
 
-# 停止服务
-docker-compose down
-
-# 查看日志
-docker-compose logs -f
-
-# 重启服务
-docker-compose restart
-
-# 更新到最新镜像
-docker-compose pull
-docker-compose up -d
-
-# 进入容器
-docker-compose exec agent-tars sh
-```
-
----
-
-## 🔄 更新镜像
-
-```bash
-# 拉取最新镜像
-docker-compose pull
-
-# 重启服务
-docker-compose down
-docker-compose up -d
-```
-
----
-
-## ❓ 常见问题
-
-### 1. 端口被占用
-
-修改 `.env` 文件中的 `PORT` 变量：
-
-```env
-PORT=8081
-```
-
-### 2. 镜像拉取失败
-
-检查网络连接，或使用镜像加速器。
-
-### 3. 容器无法启动
-
-检查 `.env` 文件是否正确配置了 API Key：
-
-```bash
-docker-compose logs
-```
-
----
+- [Agent TARS Official Docs](https://github.com/bytedance/UI-TARS-desktop)
+- [MCP Protocol](https://modelcontextprotocol.io/)
+- [Qwen Models](https://modelscope.cn/models/Qwen)
+- [DeepSeek API](https://platform.deepseek.com/)
 
 ## 📝 License
 
-Apache 2.0
+MIT
 
----
+## 👤 Author
 
-## 🔗 相关链接
-
-- [Agent TARS 官网](https://agent-tars.com)
-- [Agent TARS GitHub](https://github.com/bytedance/UI-TARS-desktop)
-- [Agent TARS 文档](https://agent-tars.com/guide/get-started/quick-start.html)
-
+**James Xie**
+- GitHub: [@jamesxie2025](https://github.com/jamesxie2025)
+- Email: jxw.xie@gmail.com

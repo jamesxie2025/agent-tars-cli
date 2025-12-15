@@ -1,0 +1,43 @@
+{
+  "name": "agent-tars-cli",
+  "version": "1.0.0",
+  "description": "Agent TARS CLI - Multimodal AI Agent by ByteDance",
+  "type": "module",
+  "scripts": {
+    "start": "agent-tars start",
+    "dev": "agent-tars start --dev",
+    "stop": "pkill -f agent-tars || true",
+    "restart": "npm run stop && npm start",
+    "logs": "tail -f ~/.agent-tars/logs/*.log",
+    "clean": "rm -rf cache/* generated/* data/agent.db",
+    "test": "agent-tars --version"
+  },
+  "keywords": [
+    "agent-tars",
+    "ai-agent",
+    "multimodal",
+    "bytedance",
+    "mcp",
+    "qwen",
+    "deepseek"
+  ],
+  "author": "James Xie <jxw.xie@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@agent-tars/cli": "^0.3.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jamesxie2025/agent-tars-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jamesxie2025/agent-tars-cli/issues"
+  },
+  "homepage": "https://github.com/jamesxie2025/agent-tars-cli#readme"
+}
+

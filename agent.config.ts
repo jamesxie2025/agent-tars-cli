@@ -5,17 +5,25 @@
  */
 
 export default {
+  // Model configuration
+  // Note: Model provider, name, baseURL, and apiKey are configured via command-line arguments
+  // See start.sh for how these are passed from .env file
+  model: {
+    // Enable vision capabilities for multimodal models (GPT-4o, Qwen-VL, etc.)
+    // Set to false if using text-only models like DeepSeek-Chat
+    enableVision: true
+  },
+
   // Browser configuration
   browser: {
     headless: true,
-    executablePath: "/usr/bin/chromium",
+    // Auto-detect Chrome/Chromium on macOS
+    // Puppeteer will find the browser automatically
     args: [
       "--headless=new",
       "--no-sandbox",
       "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--disable-software-rasterizer"
+      "--disable-dev-shm-usage"
     ],
     control: "dom"
   },
@@ -29,14 +37,12 @@ export default {
       needVisitedUrls: false,
       browser: {
         headless: true,
-        executablePath: "/usr/bin/chromium",
+        // Auto-detect Chrome/Chromium on macOS
         args: [
           "--headless=new",
           "--no-sandbox",
           "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--disable-gpu",
-          "--disable-software-rasterizer"
+          "--disable-dev-shm-usage"
         ]
       }
     }
@@ -47,7 +53,7 @@ export default {
     // File system operations
     filesystem: {
       command: "npx",
-      args: ["-y", "@modelcontextprotocol/server-filesystem", "/app/data", "/app/generated"],
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "./data", "./generated"],
       env: {},
       description: "File system access for reading/writing files"
     },
@@ -87,7 +93,7 @@ export default {
     // SQLite database
     sqlite: {
       command: "npx",
-      args: ["-y", "@modelcontextprotocol/server-sqlite", "/app/data/agent.db"],
+      args: ["-y", "@modelcontextprotocol/server-sqlite", "./data/agent.db"],
       env: {},
       description: "SQLite database for structured data storage"
     }
