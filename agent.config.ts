@@ -1,7 +1,7 @@
 /**
  * Agent TARS Configuration
  * 
- * This file configures Agent TARS settings including browser, model, and MCP servers.
+ * This file configures Agent TARS settings including browser, search, and MCP servers.
  */
 
 export default {
@@ -14,16 +14,16 @@ export default {
     enableVision: true
   },
 
-  // Browser configuration
+  // Browser configuration for web navigation
   browser: {
-    headless: true,
+    headless: false,  // Set to false to see browser actions (better for debugging and progress visibility)
     // Auto-detect Chrome/Chromium on macOS
     // Puppeteer will find the browser automatically
     args: [
-      "--headless=new",
       "--no-sandbox",
       "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage"
+      "--disable-dev-shm-usage",
+      "--disable-blink-features=AutomationControlled"  // Avoid detection as bot
     ],
     control: "dom"
   },
@@ -36,13 +36,13 @@ export default {
       engine: "google",
       needVisitedUrls: false,
       browser: {
-        headless: true,
+        headless: false,  // Show browser for search too (better visibility)
         // Auto-detect Chrome/Chromium on macOS
         args: [
-          "--headless=new",
           "--no-sandbox",
           "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage"
+          "--disable-dev-shm-usage",
+          "--disable-blink-features=AutomationControlled"
         ]
       }
     }
@@ -53,9 +53,9 @@ export default {
     // File system operations
     filesystem: {
       command: "npx",
-      args: ["-y", "@modelcontextprotocol/server-filesystem", "./data", "./generated"],
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "./workspace"],
       env: {},
-      description: "File system access for reading/writing files"
+      description: "File system access for reading/writing files in workspace directory"
     },
 
     // Excel file processing

@@ -78,5 +78,6 @@ npx agent-tars start \
   --model.provider "$MODEL_PROVIDER" \
   --model.id "$MODEL_NAME" \
   --model.baseURL "$MODEL_BASE_URL" \
-  --model.apiKey "$MODEL_API_KEY"
+  --model.apiKey "$MODEL_API_KEY" \
+  --workspace "./workspace"
 
