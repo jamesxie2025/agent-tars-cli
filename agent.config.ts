@@ -68,8 +68,10 @@ export default {
   },
 
   // MCP Servers configuration
+  // Note: Loading too many MCP servers can cause socket timeout
+  // Only essential servers are enabled by default
   mcpServers: {
-    // File system operations
+    // File system operations (ESSENTIAL)
     filesystem: {
       command: "npx",
       args: ["-y", "@modelcontextprotocol/server-filesystem", "./workspace"],
@@ -77,7 +79,7 @@ export default {
       description: "File system access for reading/writing files in workspace directory"
     },
 
-    // Excel file processing
+    // Excel file processing (ENABLED)
     excel: {
       command: "npx",
       args: ["-y", "@negokaz/excel-mcp-server"],
@@ -85,7 +87,7 @@ export default {
       description: "Read and write Excel files (.xlsx, .xls)"
     },
 
-    // Chart generation (using AntV MCP server)
+    // Chart generation (ENABLED)
     chart: {
       command: "npx",
       args: ["-y", "@antv/mcp-server-chart"],
@@ -93,29 +95,29 @@ export default {
       description: "Generate charts and visualizations with 25+ chart types"
     },
 
-    // Persistent memory
+    // Persistent memory (ESSENTIAL)
     memory: {
       command: "npx",
       args: ["-y", "@modelcontextprotocol/server-memory"],
       env: {},
       description: "Persistent memory across agent sessions"
-    },
-
-    // Git operations
-    git: {
-      command: "npx",
-      args: ["-y", "@modelcontextprotocol/server-git"],
-      env: {},
-      description: "Git version control operations"
-    },
-
-    // SQLite database
-    sqlite: {
-      command: "npx",
-      args: ["-y", "@modelcontextprotocol/server-sqlite", "./data/agent.db"],
-      env: {},
-      description: "SQLite database for structured data storage"
     }
+
+    // Git operations (DISABLED - uncomment if needed)
+    // git: {
+    //   command: "npx",
+    //   args: ["-y", "@modelcontextprotocol/server-git"],
+    //   env: {},
+    //   description: "Git version control operations"
+    // },
+
+    // SQLite database (DISABLED - uncomment if needed)
+    // sqlite: {
+    //   command: "npx",
+    //   args: ["-y", "@modelcontextprotocol/server-sqlite", "./data/agent.db"],
+    //   env: {},
+    //   description: "SQLite database for structured data storage"
+    // }
   }
 };
 
