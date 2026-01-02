@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Agent TARS CLI Startup Script
-# This script starts Agent TARS with proper environment setup
+# Agent TARS CLI Startup Script - Minimal Configuration
+# This script starts Agent TARS with minimal MCP servers to avoid timeout issues
 
 set -e
 
-echo "🚀 Starting Agent TARS CLI..."
+echo "🚀 Starting Agent TARS CLI (Minimal Configuration)..."
 echo ""
 
 # Check if Node.js is installed
@@ -37,9 +37,10 @@ fi
 
 ENV_FILE=.env
 echo "📝 Using .env for configuration"
+echo "⚡ Using minimal configuration (faster startup, fewer features)"
 
 # Create necessary directories
-mkdir -p cache data generated workspace
+mkdir -p cache data workspace
 
 # Check if @agent-tars/cli is installed
 if [ ! -d "node_modules/@agent-tars/cli" ]; then
@@ -63,6 +64,7 @@ echo "📋 Configuration:"
 echo "  - Model: $MODEL_NAME"
 echo "  - Provider: $MODEL_PROVIDER"
 echo "  - Base URL: $MODEL_BASE_URL"
+echo "  - Config: agent.config.minimal.ts"
 echo "  - Port: 8888 (default)"
 echo ""
 
@@ -75,10 +77,10 @@ echo ""
 
 # Set Node.js environment variables for better timeout handling
 export NODE_OPTIONS="--max-old-space-size=4096"
-export NODE_TLS_REJECT_UNAUTHORIZED=0  # For self-signed certificates (if needed)
 
-# Start Agent TARS with model configuration
+# Start Agent TARS with minimal configuration
 npx agent-tars start \
+  --config agent.config.minimal.ts \
   --model.provider "$MODEL_PROVIDER" \
   --model.id "$MODEL_NAME" \
   --model.baseURL "$MODEL_BASE_URL" \

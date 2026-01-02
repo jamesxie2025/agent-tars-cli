@@ -1,6 +1,6 @@
 /**
  * Agent TARS Configuration
- * 
+ *
  * This file configures Agent TARS settings including browser, search, and MCP servers.
  */
 
@@ -11,7 +11,16 @@ export default {
   model: {
     // Enable vision capabilities for multimodal models (GPT-4o, Qwen-VL, etc.)
     // Set to false if using text-only models like DeepSeek-Chat
-    enableVision: true
+    enableVision: false,  // Disable vision for Qwen3-Coder (text-only model)
+
+    // Temperature for response randomness (0.0 = deterministic, 1.0 = creative)
+    temperature: 0.7,
+
+    // Maximum tokens in response
+    maxTokens: 4096,
+
+    // Stream responses for better UX
+    stream: true
   },
 
   // Browser configuration for web navigation
@@ -23,15 +32,21 @@ export default {
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
-      "--disable-blink-features=AutomationControlled"  // Avoid detection as bot
+      "--disable-blink-features=AutomationControlled",  // Avoid detection as bot
+      "--disable-gpu",  // Reduce resource usage
+      "--disable-software-rasterizer"
     ],
-    control: "dom"
+    control: "dom",
+
+    // Timeout settings for browser operations (in milliseconds)
+    timeout: 60000,  // 60 seconds for page load
+    navigationTimeout: 60000  // 60 seconds for navigation
   },
 
   // Search configuration
   search: {
     provider: "browser_search",
-    count: 10,
+    count: 5,  // Reduce to 5 results to avoid timeout
     browserSearch: {
       engine: "google",
       needVisitedUrls: false,
@@ -42,8 +57,12 @@ export default {
           "--no-sandbox",
           "--disable-setuid-sandbox",
           "--disable-dev-shm-usage",
-          "--disable-blink-features=AutomationControlled"
-        ]
+          "--disable-blink-features=AutomationControlled",
+          "--disable-gpu",
+          "--disable-software-rasterizer"
+        ],
+        timeout: 60000,  // 60 seconds timeout
+        navigationTimeout: 60000
       }
     }
   },
